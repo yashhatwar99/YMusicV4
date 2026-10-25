@@ -866,6 +866,12 @@ private suspend fun buildGraph(settings: AppStoreSettings, session: CookieSessio
         libraryFolderPicker = { pickAndRegisterFolder(mediaStore) },
         canWriteFolder = { uri -> File(Uri.parse(uri).path.toString()).let { it.isDirectory && it.canWrite() } },
         probeDownloadFolder = { uri -> probeDownloadFolder(File(Uri.parse(uri).path.toString())) },
+        listDownloadFolderNames = { uri ->
+            withContext(Dispatchers.IO) {
+                File(Uri.parse(uri).path.toString()).list()?.toList()
+                    ?: throw java.io.IOException("cannot list download folder")
+            }
+        },
         rescanLibrary = { folderUri, onProgress -> rescanKnownRoots(mediaStore, folderUri, onProgress) },
         deleteFromDisk = { item ->
             withContext(Dispatchers.IO) {

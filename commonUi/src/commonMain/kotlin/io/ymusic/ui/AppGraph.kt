@@ -110,6 +110,9 @@ class AppGraph(
     val canWriteFolder: (String) -> Boolean = { true },
     /** Test-writes (creates, writes, deletes) a file in a would-be download folder; null when that works. */
     val probeDownloadFolder: suspend (String) -> FolderWriteProblem? = { null },
+    /** The file names directly inside a download folder uri; null on shells that cannot list one. Throws when the
+     *  folder cannot be read. */
+    val listDownloadFolderNames: (suspend (String) -> List<String>)? = null,
     /**
      * Re-scans already-added folders in place (no folder pick). [folderUri] null means every library
      * root; otherwise only that folder and its children. Null when the shell can't scan.

@@ -653,6 +653,11 @@ class YMusicApplication : Application() {
                     PackageManager.PERMISSION_GRANTED
             },
             probeDownloadFolder = { uri -> probeDownloadFolder(android.net.Uri.parse(uri)) },
+            listDownloadFolderNames = { uri ->
+                SafDocumentsProvider(applicationContext).listChildren(Uri.parse(uri))
+                    .filterIsInstance<DocumentInfo.File>()
+                    .map { it.name }
+            },
             rescanLibrary = { folderUri, onProgress -> rescanKnownRoots(shared.mediaStore, folderUri, onProgress) },
             pruneUngrantedFolders = { pruneUngrantedFolders(shared.mediaStore) },
             deleteFromDisk = { item ->
