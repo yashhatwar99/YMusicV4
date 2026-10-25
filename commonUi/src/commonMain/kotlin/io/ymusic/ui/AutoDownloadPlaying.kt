@@ -21,7 +21,7 @@ private const val LISTEN_BEFORE_DOWNLOAD_MS = 10_000L
 /**
  * [AppSettings.downloadAutoPlaying]: while on, every YouTube song that plays for a few seconds is queued as a
  * Quick download (audio only), unless a file of it is already in the download folder or a download of it is already queued, running
- * or finished. Needs a usable download folder; with none it does nothing (it never opens the folder picker
+ * (a finished one does not count: delete the file and it downloads again). Needs a usable download folder; with none it does nothing (it never opens the folder picker
  * mid-playback). Off = no effect at all.
  */
 @Composable
@@ -41,7 +41,7 @@ internal fun AutoDownloadPlayingHost(graph: AppGraph) {
         if (!hasUsableDownloadLocation(graph)) return@LaunchedEffect
         if (alreadyInDownloadFolder(graph, current)) return@LaunchedEffect
         val pending = downloads.snapshot().any {
-            it.videoId == current.videoId && it.state != DownloadState.FAILED && it.state != DownloadState.CANCELED
+            it.videoId == current.videoId && (it.state.isActive || it.state == DownloadState.PAUSED)
         }
         if (pending) return@LaunchedEffect
         val preset = if (saved.format.kind == DownloadKind.VIDEO) {
