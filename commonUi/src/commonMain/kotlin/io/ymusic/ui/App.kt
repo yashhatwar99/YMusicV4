@@ -468,6 +468,7 @@ private fun AppRoot(
             }
         }
         val availableOffline = rememberAvailableOffline(graph)
+        AutoDownloadPlayingHost(graph)
         // Add-to-playlist / save-queue entry points (video menus, Now Playing) set this; the host below
         // shows the dialog. Hoisted to the root for the same reason as the download launcher.
         var ytPlaylistRequest by remember { mutableStateOf<YtPlaylistRequest?>(null) }

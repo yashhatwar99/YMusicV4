@@ -570,4 +570,6 @@
     <string name="download_other_format">வேறு வடிவத்தில் பதிவிறக்கு</string>
     <string name="unsubscribe">குழுவிலகு</string>
     <string name="unsubscribed">குழுவிலகப்பட்டது</string>
+    <string name="settings_auto_download_playing">Auto-download what I play</string>
+    <string name="settings_auto_download_playing_hint">Saves each song you listen to into your download folder, unless it is already in your Library. Needs a download folder to be set.</string>
 </resources>

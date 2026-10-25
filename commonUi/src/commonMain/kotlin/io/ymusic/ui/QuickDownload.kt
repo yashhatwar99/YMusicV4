@@ -37,14 +37,23 @@ data class QuickDownloadPreset(
     val audioLanguage: String?,
     val captionLanguage: String?,
 ) {
-    fun request(video: YtFeedItem, mp3SourceBitrate: Boolean, fileNamePrefix: String = ""): DownloadRequest = DownloadRequest(
-        videoId = video.id,
-        title = video.title,
+    fun request(video: YtFeedItem, mp3SourceBitrate: Boolean, fileNamePrefix: String = ""): DownloadRequest =
+        request(video.id, video.title, video.thumbs.largestThumbUrl(), mp3SourceBitrate, fileNamePrefix)
+
+    fun request(
+        videoId: String,
+        title: String,
+        thumbnailUrl: String?,
+        mp3SourceBitrate: Boolean,
+        fileNamePrefix: String = "",
+    ): DownloadRequest = DownloadRequest(
+        videoId = videoId,
+        title = title,
         artist = null,
-        thumbnailUrl = video.thumbs.largestThumbUrl(),
+        thumbnailUrl = thumbnailUrl,
         format = format,
         requestedHeight = if (format.kind == DownloadKind.VIDEO) height else null,
-        fileName = DownloadFileNames.fromTitle(fileNamePrefix + video.title).ifEmpty { null },
+        fileName = DownloadFileNames.fromTitle(fileNamePrefix + title).ifEmpty { null },
         captions = if (captionLanguage == null) CaptionChoice(emptyList()) else null,
         audioLanguage = audioLanguage,
         captionLanguage = captionLanguage,

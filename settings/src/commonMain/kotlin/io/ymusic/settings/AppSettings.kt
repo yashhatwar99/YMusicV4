@@ -172,6 +172,9 @@ object AppSettings {
     /** Encode MP3 downloads at the source stream's own bitrate. Off = 320 kbps. */
     val downloadMp3SourceBitrate = BoolSetting("download.mp3SourceBitrate", false)
 
+    /** Download every YouTube song that plays, unless the Library already holds it. Off = normal playback. */
+    val downloadAutoPlaying = BoolSetting("download.autoPlaying", false)
+
     /**
      * Skip SponsorBlock segments on YouTube items. Default on; a per-video whitelist still
      * excludes individual videos.
