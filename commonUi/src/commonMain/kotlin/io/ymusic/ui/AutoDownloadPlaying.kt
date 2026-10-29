@@ -13,13 +13,16 @@ import io.ymusic.player.PlayableItem
 import io.ymusic.settings.AppSettings
 import io.ymusic.settings.flow
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 
-/** How long a song must keep playing before it is auto-downloaded, so skipping through a queue downloads nothing. */
-private const val LISTEN_BEFORE_DOWNLOAD_MS = 10_000L
+/** The share of a song that must actually have played before it is auto-downloaded (the rest allows for a silent tail). */
+private const val FULL_PLAY_SHARE = 0.9
+
+/** A position step larger than this is a seek, not playback, and adds nothing to the listened time. */
+private const val MAX_PLAYBACK_STEP_MS = 5_000L
 
 /**
- * [AppSettings.downloadAutoPlaying]: while on, every YouTube song that plays for a few seconds is queued as a
+ * [AppSettings.downloadAutoPlaying]: while on, every YouTube song that you have played through (about 90% of it actually heard; seeking ahead doesn't count) is queued as a
  * Quick download (audio only), unless a file of it is already in the download folder or a download of it is already queued, running
  * (a finished one does not count: delete the file and it downloads again). Needs a usable download folder; with none it does nothing (it never opens the folder picker
  * mid-playback). Off = no effect at all.
@@ -35,7 +38,7 @@ internal fun AutoDownloadPlayingHost(graph: AppGraph) {
     val saved by graph.quickDownload.collectAsState()
 
     LaunchedEffect(current.videoId) {
-        delay(LISTEN_BEFORE_DOWNLOAD_MS)
+        if (!playedThrough(graph)) return@LaunchedEffect
         // The download folder itself is the source of truth (a file there, whatever app put it there). Only a
         // shell that cannot list the folder, or a listing that fails, falls back to the Library's ids.
         if (!hasUsableDownloadLocation(graph)) return@LaunchedEffect
@@ -76,4 +79,22 @@ private suspend fun alreadyInDownloadFolder(graph: AppGraph, item: PlayableItem.
         }
     }
     return item.videoId in (graph.mediaStore?.youtubeVideoIds() ?: emptySet())
+}
+
+/** Suspends until the current song has been played through ([FULL_PLAY_SHARE] of its length heard); false for live. */
+private suspend fun playedThrough(graph: AppGraph): Boolean {
+    var listenedMs = 0L
+    var lastMs = -1L
+    var live = false
+    graph.player.progress.first { p ->
+        if (p.isLive) {
+            live = true
+            return@first true
+        }
+        val step = p.positionMs - lastMs
+        if (lastMs >= 0 && step in 1..MAX_PLAYBACK_STEP_MS) listenedMs += step
+        lastMs = p.positionMs
+        p.durationMs > 0 && listenedMs >= p.durationMs * FULL_PLAY_SHARE
+    }
+    return !live
 }
